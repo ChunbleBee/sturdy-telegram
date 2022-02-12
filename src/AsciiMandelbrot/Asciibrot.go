@@ -21,10 +21,9 @@ var MaxIters int = 0
 var XScale float64 = 0.0
 var YScale float64 = 0.0
 
-// TODO: Grab corresponding color from ColorMap
 func getColor(iters int, MaxIters int) string {
 	iterVal := int(math.Round((float64(iters)/float64(MaxIters))*10))
-	return string(iterVal)
+	return ColorMap[iterVal]
 }
 
 func (this Pixel) getZValues(MaxIters int) {
