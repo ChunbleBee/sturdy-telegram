@@ -16,29 +16,29 @@ type Pixel struct {
 }
 
 // TODO: Create the map of color codes
-//var ColorMap = map[]
-var maxIters int = 0;
-var xScale float64 = 0.0;
-var yScale float64 = 0.0;
+var ColorMap = map[int]string
+var MaxIters int = 0
+var XScale float64 = 0.0
+var YScale float64 = 0.0
 
-func getColor(iters int, maxIters int) string {
-	iterVal := int(math.Round((float64(iters)/float64(maxIters))*10))
+// TODO: Grab corresponding color from ColorMap
+func getColor(iters int, MaxIters int) string {
+	iterVal := int(math.Round((float64(iters)/float64(MaxIters))*10))
 	return string(iterVal)
 }
 
-// TODO: Fix this to scale appropriately based on the window of the true mandelbrot set.
-func (this Pixel) getZValues(maxIters int) {
+func (this Pixel) getZValues(MaxIters int) {
 	curIter := 0
 
-	for ; ((this.ZReal * this.ZReal) + (this.ZComplex * this.ZComplex) <= 4.0) && (curIter < maxIters); curIter++ {
-		nextZReal := (this.ZReal * this.ZReal) - (this.ZComplex * this.ZComplex) + float64(this.X)
-		nextZComplex := 2 * this.ZReal * this.ZComplex + float64(this.Y)
+	for ; math.Pow(this.ZReal, 2) + math.Pow(this.ZComplex, 2) <= 4.0) && (curIter < MaxIters); curIter++ {
+		nextZReal := math.Pow(this.ZReal) - math.Pow(this.ZComplex) + float64(this.X)*YScale - 2
+		nextZComplex := 2 * this.ZReal * this.ZComplex + float64(this.Y)*YScale - 2
 
 		this.ZReal = nextZReal
 		this.ZComplex = nextZComplex
 	}
 
-	this.Color = getColor(curIter, maxIters)
+	this.Color = getColor(curIter, MaxIters)
 }
 
 // TODO: Make this a debug function, 
@@ -76,13 +76,24 @@ func main() {
 		fmt.Println("Exiting...")
 		return
 	}
-
-	pixels := []Pixel{}
+	
+	pixels := make([]Pixel, x*y)
+	// x/xtot = mx/mtot, where mtot = 4 (range of mandelbrot set)
+	// -> x * mtot/xtot = mx
+	// This gives us the scale, but not the exact value of zreal0.
+	// Because the (min, max) of the mandelbrot == (-2.0, 2.0) for each variable,
+	// we need to subtract 2 to get to the "true" scaled value.
+	// Thus, we get:
+	// zreal_0 = (x * mtot/xtot) - 2
+	// This follows for y and zcomplex_0
+	XScale = 4.0/float64(xSize)
+	YScale = 4.0/float64(ySize)
 
 	for y := 0; y < ySize; y++ {
 		for x := 0; x < xSize; x++ {
-			pixels = append(pixels, Pixel{x, y, "", 0.0, 0.0})
-			pixels[x + y%x].getZValues(iters)
+			index := x + y%x;
+			pixels[index] = Pixel{x, y, "", 0.0, 0.0}
+			pixels[index].getZValues(iters)
 		}
 	}
 
