@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"sync"
 )
 
 type Pixel struct {
@@ -15,6 +16,7 @@ type Pixel struct {
 	ZComplex float64
 }
 
+var waitgroup sync.WaitGroup
 // TODO: Create the map of color codes
 var ColorMap = []string{"40","41","42","43","44","45","46","47","48","49","50"}
 
@@ -47,7 +49,6 @@ func (this *Pixel) getZValues() {
 	this.getColor(curIter)
 }
 
-// TODO:
 func (this Pixel) String() string {
 	return fmt.Sprintf("\033[%sm \033[0m", *this.Color)
 }
@@ -97,9 +98,15 @@ func main() {
 		for x := 0; x < xSize; x++ {
 			index := x + y*xSize;
 			pixels[index] = Pixel{x, y, &ColorMap[0], 0.0, 0.0}
-			pixels[index].getZValues()
+			waitgroup.Add(1)
+			go func() { 
+				pixels[index].getZValues()
+				waitgroup.Done()
+			}()
 		}
 	}
+
+	waitgroup.Wait()
 
 	for _, pix := range pixels {
 		fmt.Printf("%s", pix)
